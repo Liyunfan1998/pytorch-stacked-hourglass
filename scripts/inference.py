@@ -118,6 +118,7 @@ def inference_video(predictor, video_path=0):
     while True:
         ret, frame = video_capture.read()
         if ret:
+            print(idx)
             if (global_img is not None):
                 global_img.remove()
             idx = idx + 1
