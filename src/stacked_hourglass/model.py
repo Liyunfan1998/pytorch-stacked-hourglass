@@ -3,13 +3,12 @@ Hourglass network inserted in the pre-activated Resnet
 Use lr=0.01 for current version
 (c) YANG, Wei
 '''
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.hub import load_state_dict_from_url
 
-
 __all__ = ['HourglassNet', 'hg']
-
 
 model_urls = {
     'hg1': 'https://github.com/anibali/pytorch-stacked-hourglass/releases/download/v0.0.0/bearpaw_hg1-ce125879.pth',
@@ -68,7 +67,7 @@ class Hourglass(nn.Module):
     def _make_residual(self, block, num_blocks, planes):
         layers = []
         for i in range(0, num_blocks):
-            layers.append(block(planes*block.expansion, planes))
+            layers.append(block(planes * block.expansion, planes))
         return nn.Sequential(*layers)
 
     def _make_hour_glass(self, block, num_blocks, planes, depth):
@@ -83,15 +82,15 @@ class Hourglass(nn.Module):
         return nn.ModuleList(hg)
 
     def _hour_glass_forward(self, n, x):
-        up1 = self.hg[n-1][0](x)
+        up1 = self.hg[n - 1][0](x)
         low1 = F.max_pool2d(x, 2, stride=2)
-        low1 = self.hg[n-1][1](low1)
+        low1 = self.hg[n - 1][1](low1)
 
         if n > 1:
-            low2 = self._hour_glass_forward(n-1, low1)
+            low2 = self._hour_glass_forward(n - 1, low1)
         else:
-            low2 = self.hg[n-1][3](low1)
-        low3 = self.hg[n-1][2](low2)
+            low2 = self.hg[n - 1][3](low1)
+        low3 = self.hg[n - 1][2](low2)
         up2 = F.interpolate(low3, scale_factor=2)
         out = up1 + up2
         return out
@@ -102,6 +101,7 @@ class Hourglass(nn.Module):
 
 class HourglassNet(nn.Module):
     '''Hourglass model from Newell et al ECCV 2016'''
+
     def __init__(self, block, num_stacks=2, num_blocks=4, num_classes=16):
         super(HourglassNet, self).__init__()
 
@@ -118,14 +118,14 @@ class HourglassNet(nn.Module):
         self.maxpool = nn.MaxPool2d(2, stride=2)
 
         # build hourglass modules
-        ch = self.num_feats*block.expansion
+        ch = self.num_feats * block.expansion
         hg, res, fc, score, fc_, score_ = [], [], [], [], [], []
         for i in range(num_stacks):
             hg.append(Hourglass(block, num_blocks, self.num_feats, 4))
             res.append(self._make_residual(block, self.num_feats, num_blocks))
             fc.append(self._make_fc(ch, ch))
             score.append(nn.Conv2d(ch, num_classes, kernel_size=1, bias=True))
-            if i < num_stacks-1:
+            if i < num_stacks - 1:
                 fc_.append(nn.Conv2d(ch, ch, kernel_size=1, bias=True))
                 score_.append(nn.Conv2d(num_classes, ch, kernel_size=1, bias=True))
         self.hg = nn.ModuleList(hg)
@@ -155,10 +155,10 @@ class HourglassNet(nn.Module):
         bn = nn.BatchNorm2d(inplanes)
         conv = nn.Conv2d(inplanes, outplanes, kernel_size=1, bias=True)
         return nn.Sequential(
-                conv,
-                bn,
-                self.relu,
-            )
+            conv,
+            bn,
+            self.relu,
+        )
 
     def forward(self, x):
         out = []
@@ -177,7 +177,7 @@ class HourglassNet(nn.Module):
             y = self.fc[i](y)
             score = self.score[i](y)
             out.append(score)
-            if i < self.num_stacks-1:
+            if i < self.num_stacks - 1:
                 fc_ = self.fc_[i](y)
                 score_ = self.score_[i](score)
                 x = x + fc_ + score_
@@ -191,24 +191,28 @@ def hg(**kwargs):
     return model
 
 
-def _hg(arch, pretrained, progress, **kwargs):
+def _hg(arch, pretrained, progress, cuda=True, **kwargs):
     model = hg(**kwargs)
     if pretrained:
-        state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
+        if cuda == True:
+            map_location = torch.device('cpu')
+        else:
+            map_location = torch.device('cuda')
+        state_dict = load_state_dict_from_url(model_urls[arch], progress=progress, map_location=map_location)
         model.load_state_dict(state_dict)
     return model
 
 
-def hg1(pretrained=False, progress=True, num_blocks=1, num_classes=16):
+def hg1(pretrained=False, progress=True, num_blocks=1, num_classes=16, cuda=True):
     return _hg('hg1', pretrained, progress, num_stacks=1, num_blocks=num_blocks,
-               num_classes=num_classes)
+               num_classes=num_classes, cuda=cuda)
 
 
-def hg2(pretrained=False, progress=True, num_blocks=1, num_classes=16):
+def hg2(pretrained=False, progress=True, num_blocks=1, num_classes=16, cuda=True):
     return _hg('hg2', pretrained, progress, num_stacks=2, num_blocks=num_blocks,
-               num_classes=num_classes)
+               num_classes=num_classes, cuda=cuda)
 
 
-def hg8(pretrained=False, progress=True, num_blocks=1, num_classes=16):
+def hg8(pretrained=False, progress=True, num_blocks=1, num_classes=16, cuda=True):
     return _hg('hg8', pretrained, progress, num_stacks=8, num_blocks=num_blocks,
-               num_classes=num_classes)
+               num_classes=num_classes, cuda=cuda)
