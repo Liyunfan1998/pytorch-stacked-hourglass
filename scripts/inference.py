@@ -57,11 +57,15 @@ def main(args):
     # _, _, predictions = do_validation_epoch(val_loader, model, device, Mpii.DATA_INFO, args.flip)
 
     model = hg1(pretrained=True)
-    predictor = HumanPosePredictor(model, device='cuda')
+    predictor = HumanPosePredictor(model, device='cpu')
     # my_image = image_loader("../inference-img/1.jpg")
     # joints = image_inference(predictor, image_path=None, my_image=my_image)
     # imshow(my_image, joints=joints)
-    inference_video(predictor, "../inference-video/R6llTwEh07w.mp4")
+    if args.camera == False:
+        inference_video(predictor, "../inference-video/R6llTwEh07w.mp4")
+
+    elif args.camera:
+        inference_video(predictor, 0)
 
     # Report PCKh for the predictions.
     # print('\nFinal validation PCKh scores:\n')
@@ -116,6 +120,7 @@ def inference_video(predictor, video_path=0):
     video_capture = cv2.VideoCapture(video_path)
     idx = 0
     while True:
+        tic = timer()
         ret, frame = video_capture.read()
         if ret:
             print(idx)
@@ -169,6 +174,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Evaluate a stacked hourglass model.')
     parser.add_argument('--image-path', required=True, type=str,
                         help='path to MPII Human Pose images')
+    parser.add_argument('--camera', required=True, default=False, type=bool,
+                        help='use real-time video capture or not')
     parser.add_argument('--arch', metavar='ARCH', default='hg1',
                         choices=['hg1', 'hg2', 'hg8'],
                         help='model architecture')

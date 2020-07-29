@@ -5,7 +5,7 @@ for use as a Python package.
 
 ## first !!!
 export PYTHONPATH="${PYTHONPATH}:/home/lyunfan/Desktop/hourglass-pkg/src/stacked_hourglass"
-
+export PYTHONPATH="${PYTHONPATH}:/Users/liyunfan/Desktop/深度学习/NYU_summer_intern/hourglass-pkg"
 ## Usage
 
 This library is designed to make including human pose estimation into an application as simple
