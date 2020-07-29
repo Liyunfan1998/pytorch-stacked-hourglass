@@ -3,6 +3,8 @@
 This is a fork of [bearpaw/pytorch-pose](https://github.com/bearpaw/pytorch-pose) which is modified
 for use as a Python package.
 
+## first !!!
+export PYTHONPATH="${PYTHONPATH}:/home/lyunfan/Desktop/hourglass-pkg/src/stacked_hourglass"
 
 ## Usage
 

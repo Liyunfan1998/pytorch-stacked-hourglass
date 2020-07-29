@@ -57,12 +57,11 @@ def main(args):
     # _, _, predictions = do_validation_epoch(val_loader, model, device, Mpii.DATA_INFO, args.flip)
 
     model = hg1(pretrained=True)
-    predictor = HumanPosePredictor(model, device='cpu')
+    predictor = HumanPosePredictor(model, device='cuda')
     # my_image = image_loader("../inference-img/1.jpg")
     # joints = image_inference(predictor, image_path=None, my_image=my_image)
     # imshow(my_image, joints=joints)
-    inference_video(predictor,
-                    "/home/lyunfan/anaconda3/pkgs/torchvision-0.4.2-py37_cu100/info/test/test/assets/videos/R6llTwEh07w.mp4")
+    inference_video(predictor, "../inference-video/R6llTwEh07w.mp4")
 
     # Report PCKh for the predictions.
     # print('\nFinal validation PCKh scores:\n')
@@ -81,6 +80,7 @@ loader = transforms.Compose([
     transforms.ToTensor()])
 
 unloader = transforms.ToPILImage()
+from timeit import default_timer as timer
 
 
 # 返回tensor变量
@@ -127,33 +127,40 @@ def inference_video(predictor, video_path=0):
             global_img = imshow(image, None, joints)
         else:
             exit(0)
+        toc = timer()
+        print("frame" + str(idx) + " time", toc - tic)  # 输出的时间，秒为单位
 
 
 def imshow_from_tensor(tensor, title=None, joints=None):
+    tic = timer()
     image = tensor.cpu().clone()  # we clone the tensor to not do changes on it
     image = image.squeeze(0)  # remove the fake batch dimension
     image = unloader(image)
+    r = image.size[0] / 100
 
     draw = ImageDraw.Draw(image)
     for joint in joints:
         x = joint[0]
         y = joint[1]
-        draw.chord((x - 10, y - 10, x + 10, y + 10), 0, 360, (255, 0, 0), (0, 255, 0))
+        draw.chord((x - r, y - r, x + r, y + r), 0, 360, (255, 0, 0), (0, 255, 0))
     plt.imshow(image)
-    if title is not None:
-        plt.title(title)
+    # if title is not None:
+    #     plt.title(title)
     plt.pause(0.001)  # pause a bit so that plots are updated
+    toc = timer()
+    print("frame" + str(idx) + " time", toc - tic)  # 输出的时间，秒为单位
 
 
 def imshow(image, title=None, joints=None):
     draw = ImageDraw.Draw(image)
+    r = image.size[0] / 100
     for joint in joints:
         x = joint[0]
         y = joint[1]
-        draw.chord((x - 10, y - 10, x + 10, y + 10), 0, 360, (255, 0, 0), (0, 255, 0))
+        draw.chord((x - r, y - r, x + r, y + r), 0, 360, (255, 0, 0), (0, 255, 0))
     ret = plt.imshow(image)
-    if title is not None:
-        plt.title(title)
+    # if title is not None:
+    #     plt.title(title)
     plt.pause(0.001)  # pause a bit so that plots are updated
     return ret
 
