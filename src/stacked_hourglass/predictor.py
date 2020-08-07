@@ -1,4 +1,5 @@
 import torch
+from timeit import default_timer as timer
 
 from stacked_hourglass.datasets.mpii import Mpii
 from stacked_hourglass.utils.evaluation import final_preds_untransformed
@@ -50,7 +51,10 @@ class HumanPosePredictor:
         input_tensor = torch.empty((len(raw_images), 3, 256, 256),
                                    device=self.device, dtype=torch.float32)
         for i, raw_image in enumerate(raw_images):
+            # resize_tic = timer()
             input_tensor[i] = self.prepare_image(raw_image)
+            # resize_toc = timer()
+            # print("resize", resize_toc - resize_tic)
         heatmaps = self.do_forward(input_tensor)[-1].cpu()
         if flip:
             flip_input = fliplr(input_tensor)

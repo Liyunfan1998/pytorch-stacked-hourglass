@@ -8,6 +8,10 @@ import torch.backends.cudnn
 import matplotlib.pyplot as plt
 
 from torch.nn import DataParallel
+import sys
+
+# setting PYTHONPATH
+sys.path.append(os.path.abspath('..') + '/src/stacked_hourglass')
 
 from stacked_hourglass import hg1, hg2, hg8, HumanPosePredictor
 
@@ -118,6 +122,8 @@ def inference_video(predictor, video_path=0):
     global global_img
 
     video_capture = cv2.VideoCapture(video_path)
+    video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, 256)
+    video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 256)
     idx = 0
     while True:
         tic = timer()
@@ -127,13 +133,16 @@ def inference_video(predictor, video_path=0):
             if (global_img is not None):
                 global_img.remove()
             idx = idx + 1
+            inference_tic = timer()
             image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             joints = image_inference(predictor, None, image)
-            global_img = imshow(image, None, joints)
+            inference_toc = timer()
+            # global_img = imshow(image, None, joints)
         else:
             exit(0)
         toc = timer()
-        print("frame" + str(idx) + " time", toc - tic)  # 输出的时间，秒为单位
+        print("frame" + str(idx) + "; total time", toc - tic, "; inference time:",
+              inference_toc - inference_tic)  # 输出的时间，秒为单位
 
 
 def imshow_from_tensor(tensor, title=None, joints=None):

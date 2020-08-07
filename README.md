@@ -4,8 +4,11 @@ This is a fork of [bearpaw/pytorch-pose](https://github.com/bearpaw/pytorch-pose
 for use as a Python package.
 
 ## first !!!
+```
 export PYTHONPATH="${PYTHONPATH}:/home/lyunfan/Desktop/hourglass-pkg/src/stacked_hourglass"
-export PYTHONPATH="${PYTHONPATH}:/Users/liyunfan/Desktop/深度学习/NYU_summer_intern/hourglass-pkg"
+export PYTHONPATH="${PYTHONPATH}:/Users/liyunfan/Desktop/深度学习/NYU_summer_intern/K-project-new-UI/hourglass-pkg/src/stacked_hourglass"
+```
+or anything like this
 ## Usage
 
 This library is designed to make including human pose estimation into an application as simple
